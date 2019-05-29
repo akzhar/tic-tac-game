@@ -10,12 +10,16 @@ html, body {
   justify-content: center;
   background-color: #fbebde; }
 
+.main__players {
+  margin: 0 auto 40px auto;
+  padding: 0;
+  list-style: none;
+  align-self: flex-start; }
+
 .main__msg {
   display: block;
-  margin-bottom: 50px;
-  text-align: center;
-  font-size: 24px;
-  text-transform: uppercase; }
+  margin-bottom: 40px;
+  font-size: 22px; }
 
 .field {
   display: flex;
