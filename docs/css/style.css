@@ -17,9 +17,30 @@ html, body {
   align-self: flex-start; }
 
 .main__msg {
-  display: block;
   margin-bottom: 40px;
-  font-size: 22px; }
+  font-size: 22px;
+  line-height: 34px;
+  font-weight: 600; }
+
+.button {
+  display: none;
+  padding: 8px;
+  border: none;
+  border-radius: 10px;
+  background-color: #fb580d;
+  font-size: 12px;
+  color: #ffffff;
+  text-transform: uppercase; }
+  .button:hover {
+    opacity: 0.8;
+    cursor: pointer; }
+  .button:active {
+    opacity: 0.6; }
+
+.show {
+  display: inline-block;
+  vertical-align: baseline;
+  margin-left: 10px; }
 
 .field {
   display: flex;
@@ -64,3 +85,10 @@ html, body {
           transform: translate(-50%, -50%);
   border: 8px solid #d1e44a;
   border-radius: 50%; }
+
+.cross.win::before,
+.cross.win::after {
+  background-color: blue; }
+
+.circle.win::after {
+  border-color: blue; }

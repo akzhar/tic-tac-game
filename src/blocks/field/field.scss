@@ -65,3 +65,12 @@
     border-radius: 50%;
   }
 }
+
+.cross.win::before,
+.cross.win::after {
+  background-color: blue;
+}
+
+.circle.win::after {
+  border-color: blue;
+}
