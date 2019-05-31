@@ -1,11 +1,14 @@
 <main class="main">
 
-  <ul class="main__players">
+  <ul class="main__players" id="players">
     <li>За 'X' играет : <b>****</b></li>
     <li>За 'O' играет : <b>****</b></li>
   </ul>
 
-  <b class="main__msg">****</b>
+  <div class="main__msg">
+    <span id="msg">****</span>
+    <include src="src/blocks/button/button.html"></include>
+  </div>
 
   <include src="src/blocks/field/field.html"></include>
 
