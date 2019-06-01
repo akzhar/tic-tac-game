@@ -10,6 +10,8 @@
   grid-template-rows: $size $size $size;
 
   border: 1px solid #000000;
+
+  margin-bottom: 40px;
 }
 
 .field div {
@@ -39,7 +41,7 @@
     width: $size/1.6;
     height: $size/12.5;
 
-    background-color: $orangeLight;
+    background-color: $orange;
   }
 
   &::before {
@@ -61,7 +63,7 @@
 
     transform: translate(-50%, -50%);
 
-    border: ($size/12.5) solid $greenLight;
+    border: ($size/12.5) solid $green;
     border-radius: 50%;
   }
 }
