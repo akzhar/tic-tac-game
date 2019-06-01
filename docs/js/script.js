@@ -3,12 +3,14 @@
 var players = [
 {
   name: '',
-  shape: 'cross',
+  cssClass: 'cross',
+  shape: 'X',
   fieldset: [0,0,0,0,0,0,0,0,0]
 },
 {
   name: '',
-  shape: 'circle',
+  cssClass: 'circle',
+  shape: 'O',
   fieldset: [0,0,0,0,0,0,0,0,0]
 }
 ]
@@ -25,7 +27,7 @@ var winFieldsets = [
 ]
 
 function setPlayer(i) {
-  var player = prompt('Введите имя ' + (i+1) + ' игрока (за ' + players[i].shape +')', '');
+  var player = prompt('Введите имя ' + (i+1) + ' игрока (за ' + players[i].shape +')\nПо умолчанию \'Игрок ' + (i+1) + '\'', '');
   player = (player == null) ? 'Игрок ' + (i+1) : player;
   players[i].name = player;
   var playerTitle = document.getElementById('players').children[i].querySelector('b');
@@ -34,9 +36,9 @@ function setPlayer(i) {
 
 function alertGameStatus(isWin, isDraw) {
   if (isWin) {
-    msgSpan.textContent = 'Игра окончена: ' + players[playerNo].name + ' выиграл!';
+    msgSpan.textContent = players[playerNo].name + ' выиграл!';
   } else if (isDraw) {
-    msgSpan.textContent = 'Игра окончена: Ничья!';
+    msgSpan.textContent = 'Ничья!';
   } else {
     msgSpan.textContent = 'Сейчас ходит: ' + players[playerNo].name;
   }
@@ -88,7 +90,7 @@ function removeCellsClickHandler() {
 }
 
 function addPlayerShape(cell) {
-  cell.classList.add(players[playerNo].shape);
+  cell.classList.add(players[playerNo].cssClass);
 }
 
 function setPlayerFieldset(cell) {
