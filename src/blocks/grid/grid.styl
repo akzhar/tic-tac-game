@@ -1,0 +1,60 @@
+.grid
+  display flex
+  flex-wrap wrap
+  width (size * 3)
+  height (size * 3)
+  display grid
+  grid-template-columns size size size
+  grid-template-rows size size size
+  border 1px solid #000000
+  background-color #ffffff
+  margin-bottom 40px
+
+  &__cell
+    position relative
+    width size
+    height size
+    border 1px solid #000000
+    box-sizing border-box
+
+    &::before,
+    &::after
+      position absolute
+      top 50%
+      left 50%
+    
+    &:not(.grid__cell--cross):not(.grid__cell--circle):not(.grid__cell--off):hover
+      background-color #eee
+      cursor pointer
+
+    &--cross
+
+      &::before,
+      &::after
+        content ""
+        width (size / 1.6)
+        height (size / 12.5)
+        background-color color_blue
+
+      &::before
+        transform translate(-50%, -50%) rotate(45deg)
+
+      &::after
+        transform translate(-50%, -50%) rotate(-45deg)
+
+      &.win::before,
+      &.win::after
+        background-color color_orange
+
+    &--circle
+
+      &::after
+        content ""
+        width (size / 2.5)
+        height (size / 2.5)
+        transform translate(-50%, -50%)
+        border (size / 12.5) solid color_green
+        border-radius 50%
+
+      &.win::after
+        border-color color_orange

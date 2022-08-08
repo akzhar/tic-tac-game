@@ -1,0 +1,16 @@
+doctype html
+html(lang='ru')
+  head
+    meta(charset='utf-8')
+    meta(name='author' content='Akzhar Taov')
+    meta(name='viewport' content='width=device-width, initial-scale=1.0')
+    title Tic-tac game
+    link(rel='stylesheet' href='css/style.min.css')
+    link(rel='icon' href='./favicon.ico' type='image/x-icon')
+  body
+    main
+      include blocks/message/message.pug
+      include blocks/grid/grid.pug
+      include blocks/restart-btn/restart-btn.pug
+    script(src='js/polyfill.min.js')
+    script(src='js/script.min.js')

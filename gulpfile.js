@@ -1,196 +1,132 @@
-"use strict";
+'use strict';
 
-var gulp = require("gulp"), //задаем переменные
-sass = require("gulp-sass"),
-plumber = require("gulp-plumber"),
-postcss = require("gulp-postcss"),
-jsmin = require("gulp-jsmin"),
-autoprefixer = require("gulp-autoprefixer"),
-cleanCSS = require("gulp-clean-css"),
-imagemin = require("gulp-imagemin"),
-imageminSvgo = require('imagemin-svgo'),
-imageminJpegRecompress = require('imagemin-jpeg-recompress'),
-imageminPngquant = require("imagemin-pngquant"),
-cwebp = require('gulp-cwebp'),
-rimraf = require("rimraf"),
-gulpStylelint = require('gulp-stylelint'),
-server = require("browser-sync").create(),
-devip = require('dev-ip'),
-svgstore = require('gulp-svgstore'),
-posthtml = require('gulp-posthtml'),
-include = require('posthtml-include'),
-htmlmin = require('gulp-htmlmin'),
-run = require('run-sequence'),
-pug = require('gulp-pug'),
-rename = require("gulp-rename");
+const ADDRESS = {
+	build: {
+		root: 'docs/',
+		css: 'docs/css/',
+		fonts: 'docs/fonts/',
+		img: 'docs/img/',
+		js: 'docs/js/'
+	},
+	source: {
+		root: 'src/',
+		blocks: 'src/blocks/',
+		fonts: 'src/fonts/',
+		img: 'src/img/',
+		sprite: 'src/img/sprite/',
+		js: 'src/js/'
+	},
+	temp: 'temp/'
+};
 
-devip(); // [ "192.168.1.76", "192.168.1.80" ] or false if nothing found (ie, offline user)
+const path = require('path');
+const gulp = require('gulp');
 
-gulp.task('lint', function lintCssTask() { // задача - вызывается как скрипт из package.json
-  return gulp
-  .src("src/blocks/*.{scss,sass}") // источник
-  .pipe(gulpStylelint({
-    reporters: [
-    {formatter: 'string', console: true}
-    ]
-  }));
+// каждый раз кеширует цепочку обработки
+// если в новой итерации нет закешированных ранее файлов - добавляет их в цепочку обработки
+const remember = require('gulp-remember');
+
+function lazyRequireTask(taskName, path, options) {
+	options = options || {};
+	options.taskName = taskName;
+	gulp.task(taskName, function (callback) {
+		let task = require(path).call(this, options);
+		return task(callback);
+	});
+}
+
+lazyRequireTask('delete', './gulp_tasks/delete.js', { folders: ['docs', 'temp'] });
+
+lazyRequireTask('copy-fonts', './gulp_tasks/copy.js', {
+	src: `${ADDRESS.source.fonts}*.{woff,woff2}`,
+	dest: `${ADDRESS.build.fonts}`,
+	debugTitle: 'copy font files:',
+	taskName: 'copy-fonts'
 });
 
-gulp.task('clean', function (cb) { // задача - вызывается как скрипт из package.json
-  rimraf("docs", cb); // удаление папки build (предыдущая сборка)
+lazyRequireTask('copy-favicon', './gulp_tasks/copy.js', {
+	src: `${ADDRESS.source.img}favicon.ico`,
+	dest: `${ADDRESS.build.root}`,
+	debugTitle: 'copy favicon file:',
+	taskName: 'copy-favicon'
+}); 
+
+lazyRequireTask('copy-polyfill', './gulp_tasks/copy.js', {
+	src: `${ADDRESS.source.root}/polyfill/polyfill.min.js`,
+	dest: `${ADDRESS.build.js}`,
+	debugTitle: 'copy polyfill file:',
+	taskName: 'copy-polyfill'
+}); 
+
+lazyRequireTask('style', './gulp_tasks/style.js', {
+	src: `${ADDRESS.source.root}style.styl`,
+	dest: `${ADDRESS.build.css}`,
+	bundleName: 'style'
 });
 
-gulp.task("copy", function () { // задача - вызывается как скрипт из package.json
-  gulp.src([  // источник
-    "src/fonts/**/*.{woff,woff2}"
-    ],
-    {
-      base: "src"
-    })
-  .pipe(gulp.dest("docs/")); // класть результат сюда
+lazyRequireTask('html', './gulp_tasks/html.js', {
+	src: `${ADDRESS.source.root}index.pug`,
+	dest: `${ADDRESS.build.root}`
 });
 
-gulp.task("sprite", function () { // задача - вызывается как скрипт из package.json
-  gulp.src("src/img/sprite/inline-*.svg") // источник
-  .pipe(imagemin([
-    imageminSvgo({ // сжатие svg
-      plugins: [
-      {removeDimensions: true},
-      {removeAttrs: true},
-      {removeElementsByAttr: true},
-      {removeStyleElement: true},
-      {removeViewBox: false}
-      ]
-    })
-    ]))
-  .pipe(svgstore({
-    inlineSvg: true
-  }))
-  .pipe(rename({
-    basename: "sprite",
-    suffix: ".min"
-  }))
-  .pipe(gulp.dest("docs/img/")) // класть результат сюда
+lazyRequireTask('image', './gulp_tasks/image.js', {
+	src: `${ADDRESS.source.img}*.{png,jpg,jpeg,svg}`,
+	dest: `${ADDRESS.build.img}`
 });
 
-gulp.task("style", function () { // задача - вызывается как скрипт из package.json
-  gulp.src("src/blocks/*.{scss,sass}") // источник
-  .pipe(plumber()) // отслеживание ошибок - вывод в консоль, не дает прервать процесс
-  .pipe(sass().on('error', sass.logError)) // компиляция из препроцессорного кода sass --> css кода
-  .pipe(autoprefixer()) // расставление автопрефиксов
-  .pipe(gulp.dest("docs/css/")) // класть результат сюда
-  .pipe(cleanCSS()) // минификация
-  .pipe(rename({
-    suffix: ".min"
-  }))
-  .pipe(gulp.dest("docs/css/")) // класть результат сюда
+lazyRequireTask('stylint', './gulp_tasks/stylint.js', {
+	src: `${ADDRESS.source.blocks}**/*.styl`
 });
 
-gulp.task('js', function () { //задача - вызывается как скрипт из package.json
-  gulp.src("src/js/script.js") // источник
-  //.pipe(posthtml([ // сборка из разных файлов
-  //   include()
-  //   ]))
-  .pipe(gulp.dest("docs/js/")) // класть результат сюда
-  .pipe(jsmin()) // минификация
-  .pipe(rename({
-    suffix: ".min"
-  }))
-  .pipe(gulp.dest("docs/js/")) // класть результат сюда
+lazyRequireTask('babel', './gulp_tasks/babel.js', {
+	src: `${ADDRESS.source.js}**/*.js`,
+	dest: `${ADDRESS.temp}`
 });
 
-gulp.task("image", function () { // задача - вызывается как скрипт из package.json
-  gulp.src("src/img/*.{png,jpg,svg}") // источник
-  .pipe(imagemin([
-    imageminPngquant({ // сжатие png
-      quality: '80'
-    }),
-    imageminJpegRecompress({ // сжатие jpeg
-      progressive: true,
-      method: 'ms-ssim'
-    }),
-    imageminSvgo({ // сжатие svg
-      plugins: [
-      {removeDimensions: true},
-      {removeAttrs: true},
-      {removeElementsByAttr: true},
-      {removeStyleElement: true},
-      {removeViewBox: false}
-      ]
-    })
-    ]))
-  .pipe(gulp.dest("docs/img/")) // класть результат сюда
+lazyRequireTask('js', './gulp_tasks/js.js', {
+	src: [
+		`${ADDRESS.temp}script.js`,
+	],
+	dest: `${ADDRESS.build.js}`,
+	bundleName: 'script'
 });
 
-gulp.task("cwebp", function () { // задача - вызывается как скрипт из package.json
-  gulp.src("src/img/*.*") // источник
-  .pipe(cwebp())
-  .pipe(gulp.dest("docs/img/")); // класть результат сюда
+lazyRequireTask('eslint', './gulp_tasks/eslint.js', {
+	src: `${ADDRESS.source.js}**/*.js`
 });
 
-gulp.task("html", function () { // задача - вызывается как скрипт из package.json
-  gulp.src("src/blocks/*.html") // источник
-  .pipe(posthtml([ // сборка из разных файлов
-    include()
-    ]))
-  .pipe(htmlmin({ collapseWhitespace: true })) // минификация
-  .pipe(gulp.dest("docs/")) // класть результат сюда
+lazyRequireTask('sprite-svg', './gulp_tasks/sprite-svg.js', {
+	src: `${ADDRESS.source.sprite}*.svg`,
+	dest: `${ADDRESS.build.img}`
 });
 
-gulp.task("pug", function buildHTML() {
-  return gulp.src("src/blocks/**/*.pug")
-  .pipe(pug({pretty: true})) // Запретите минифицировать HTML
-  // .pipe(htmlmin({ collapseWhitespace: true })) // минификация
-  .pipe(gulp.dest(function(file){
-    return file.base;
-  }))
+// lazyRequireTask('validate-html', './gulp_tasks/validate-html.js', {
+// 	src: `${ADDRESS.build.root}*.html`
+// });
+
+gulp.task('build', gulp.series(
+	'delete',
+	'babel',
+	'js',
+	gulp.parallel('eslint', 'stylint', 'image', 'sprite-svg', 'copy-fonts', 'copy-favicon', 'copy-polyfill'),
+	gulp.parallel('style', 'html')
+	// 'validate-html'
+));
+
+gulp.task('watch', function () {
+	gulp.watch(`${ADDRESS.source.root}**/*.pug`, gulp.series('html'));
+	gulp.watch(`${ADDRESS.source.root}**/*.styl`, gulp.parallel('style'));
+	gulp.watch(`${ADDRESS.source.js}**/*.js`, gulp.series('babel', 'js')).on('unlink', (filePath) => {
+		remember.forget('js', path.resolve(filePath));
+	});
+	gulp.watch(`${ADDRESS.source.img}**/*.{png,jpg,jpeg,svg}`, gulp.series('image'));
 });
 
-gulp.task("watch", function() { // задача - вызывается как скрипт из package.json
-  setTimeout(function(){gulp.watch("src/blocks/**/*.{scss,sass}", ["style", "reload"])},1000); // отслеживание изменений файлов scss
-  setTimeout(function(){gulp.watch("src/js/**/*.js", ["js" , "reload"])},1000); // отслеживание изменений файлов js
-  setTimeout(function(){gulp.watch("src/blocks/**/*.html", ["html", "reload"])},1000); // отслеживание изменений файлов html
-  setTimeout(function(){gulp.watch("src/img/*.*", ["image", "reload"])},1000); // отслеживание изменений файлов img
-  setTimeout(function(){gulp.watch("src/img/sprite/inline-*.svg", ["sprite", "html", "reload"])},1000); // отслеживание изменений файлов sprite svg
-  setTimeout(function(){gulp.watch("src/blocks/**/*.pug", ["pug", "html", "reload"])},1000); // отслеживание изменений файлов html
+lazyRequireTask('server', './gulp_tasks/server.js', {
+	root: `${ADDRESS.build.root}`,
+	watch: `${ADDRESS.build.root}**/*.*`
 });
 
-gulp.task("reload", function() { // задача - вызывается как скрипт из package.json
-  server.reload(); //обновление браузера - скрол уедет наверх
-});
+gulp.task('serve', gulp.parallel('watch', 'server'));
 
-gulp.task ("serve", function(done) { //задача - вызывается как скрипт из package.json
-  server.init({ // перед запуском start запускается рад задач, затем запускается локальный сервер
-    server: "docs", // адрес к папке где лежит сборка
-    notify: false,
-    open: true,
-    cors: true,
-    host: "192.168.0.91", // дефолтный ip занят virtualbox, задача devip определила запасной ip
-    ui: false
-  });
-  done();
-});
-
-gulp.task ("build", function(done) {
-  run (
-    "clean",
-    "copy",
-    "image",
-    "cwebp",
-    "sprite",
-    "style",
-    "js",
-    "pug",
-    done
-    )
-});
-
-gulp.task ("start", function(done) {
-  run (
-    "html",
-    "serve",
-    "watch",
-    done
-    )
-});
-
+gulp.task('dev', gulp.series('build', 'serve'));
