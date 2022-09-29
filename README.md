@@ -1,9 +1,9 @@
-# Игра крестики-нолики 3х3
+# Simple tic-tac-toe game (noughts and crosses) 3х3
 
-[Играть](https://akzhar.github.io/tic-tac)
+[Play](https://akzhar.github.io/tic-tac)
 
-## 2. Установка зависимостей
-Находясь в корневой папке проекта, выполните команду `npm i`
+## Install dependencies
+`git clone repo_url` → `cd ./repo-folder` → `npm install`
 
-## 3. Запуск приложения в dev режиме
-Находясь в корневой папке проекта, выполните команду `npm run start`
+## Build and run the app
+`cd ./repo-folder` → `npm run start`
