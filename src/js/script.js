@@ -16,7 +16,9 @@ const WIN_COMBINATIONS = [
 	[0,0,1,0,1,0,1,0,0]
 ];
 
-// данные (модель)
+// game data
+
+let playerNum = 0;
 
 const players = [
 	{
@@ -29,9 +31,8 @@ const players = [
 	}
 ];
 
-// запуск игры
+// run the game
 
-let playerNum = 0;
 const messageText = document.querySelector('.message__text');
 const messagePlayer = document.querySelector('.message__player');
 const restartBtn = document.querySelector('.restart-btn');
@@ -52,7 +53,7 @@ function stopGame() {
 
 runGame();
 
-// функции вывода информации (представление)
+// output game results
 
 function showGameStatus(isWin, isDraw) {
 	const currentPlayer = players[playerNum].shape;
@@ -62,13 +63,13 @@ function showGameStatus(isWin, isDraw) {
 	messagePlayer.classList.remove(`message__player--${ShapeToClass['O']}`);
 	messagePlayer.classList.add(`message__player--${ShapeToClass[currentPlayer]}`);
 	if (isWin) {
-		messageText.textContent = 'В этот раз выиграл';
+		messageText.textContent = 'And the winner is...';
 	} else if (isDraw) {
-		messageText.textContent = 'Ничья';
+		messageText.textContent = 'Draw';
 		messagePlayer.textContent = '';
 		messagePlayer.classList.add('message__player--hide');
 	} else {
-		messageText.textContent = 'Следующий ход ';
+		messageText.textContent = 'Choose the cell for';
 	}
 }
 
@@ -87,7 +88,7 @@ function showWinMoves(winFieldset) {
 	}
 }
 
-// функции изменения модели (контроллер)
+// game logic
 
 function changePlayer() {
 	playerNum = playerNum == 0 ? 1 : 0;
